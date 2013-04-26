@@ -11,9 +11,13 @@ class LetterLogic():
     def __init__(self, letter_board):
         if not LetterLogic.wordlist:
             print "loading"
-            with open("/Users/Richard/Documents/python/wordlist_big.txt") as f:
-                LetterLogic.wordlist = f.readline().split(" ")
-            print "done"
+        with open('/thayerfs/home/d31645m/Documents/letterpress/letterpress-wordlist/wordlist', 'r') as f:
+            LetterLogic.wordlist = [s.strip().upper() for s in f.readlines()]
+            if LetterLogic.wordlist:
+                print "done"
+            else:
+                print "problems"
+                sys.exit(1)
         self.board = letter_board
         self.get_playable_words()
     
@@ -28,9 +32,6 @@ class LetterLogic():
         #   loop through wordlist or do permutations of letters
         for bigword in LetterLogic.wordlist:
             l_temp = letters
-            #print l_temp
-        
-            #print "[%s]:" % bigword,
             builtword = ""
             can_make_word = True
             for c in bigword:
@@ -89,7 +90,7 @@ class LetterLogic():
         if word == "":
             return board
         else:
-            best_board = None
+            best_board = board
             best_score = -51 # min possible is -50
             for i in range(len(choose_from)):
                 if word[0] == choose_from[i]:

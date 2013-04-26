@@ -5,6 +5,7 @@ from os import system
 import string
 
 def analytics(ll, contains="", nth=1):
+    ll.get_playable_words()
     contains = contains.upper()
     print "longest words%s:" % (" containing '%s'"%contains if contains else "")
     longests = ll.get_longest_words(contains, nth)
@@ -17,7 +18,15 @@ def analytics(ll, contains="", nth=1):
 # max
 # game = LetterLogic(LetterBoard("BLVYDNRBRSPNGEMEHZSDHWBAJ"))
 # brittany
-game = LetterLogic(LetterBoard("RNCNPLHNFVCCYPEAGMDFHRIPQ"))
+#game = LetterLogic(LetterBoard("RNCNPLHNFVCCYPEAGMDFHRIPQ"))
+game = LetterLogic(LetterBoard("BRITTANYCAROLINEWALD#####"))
+
+def run_turn(game):
+    game.board.print_board()
+    best_wd, best_bd = game.get_best_play(1)
+    best_bd.print_board()
+    print "BEST WORD:", best_wd
+    
 
 def run_game(game):
     game.board.print_board()
@@ -58,12 +67,17 @@ else:
                 [-1,  0, -1, -1, -1],\
                 [ 1, -1, -1, -1, -1],\
                 [ 1,  1, -1, -1,  0]]
-        """
         grid = [[-1, -1, -1, -1,  1],\
                 [-1,  0,  1, -1, -1],\
                 [-1, -1, -1, -1, -1],\
                 [-1, -1,  0,  1,  1],\
                 [ 1,  1,  0, -1,  1]]
-        game.initialize(grid, [])
+        grid = [[ 0,  1,  1,  1,  1],\
+                [-1,  1,  0,  1,  1],\
+                [-1, -1, -1, -1, -1],\
+                [-1, -1,  0, -1, -1],\
+                [-1, -1, -1, -1, -1]]
+        
+        game.initialize(grid, [])"""
         
         run_game(game)
