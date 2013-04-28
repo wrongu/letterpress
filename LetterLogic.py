@@ -1,17 +1,16 @@
 from itertools import combinations
-from LetterBoard import itoc, itor
+from LetterBoard import LetterBoard, itoc, itor
 import sys
-
-class LetterLogic():
     
+class LetterLogic():
     wordlist = []
     playable_words = []
     board = None
     
     def __init__(self, letter_board):
         if not LetterLogic.wordlist:
-            print "loading"
-        with open('/thayerfs/home/d31645m/Documents/letterpress/letterpress-wordlist/wordlist', 'r') as f:
+            print "loading wordlist..."
+        with open('letterpress-wordlist/wordlist', 'r') as f:
             LetterLogic.wordlist = [s.strip().upper() for s in f.readlines()]
             if LetterLogic.wordlist:
                 print "done"
@@ -25,29 +24,14 @@ class LetterLogic():
         if not self.board:
             print "no board, no words!"
             return
-        letters = ''.join(self.board.letterstring)
-        n = 0
-        N = len(LetterLogic.wordlist)
-        # 2 options:
-        #   loop through wordlist or do permutations of letters
+        playables = []
+        letters_dict = word_to_letter_dict(self.board.letterstring)
+        # loop through all words and look for them in letters
         for bigword in LetterLogic.wordlist:
-            l_temp = letters
-            builtword = ""
-            can_make_word = True
-            for c in bigword:
-                i = l_temp.find(c)
-                if i == -1:
-                    #print builtword
-                    can_make_word = False
-                    break
-                else:
-                    builtword = builtword + c
-                    l_temp = l_temp[:i] + l_temp[i+1:]
-            if can_make_word:
-                self.playable_words.append(bigword)
-            # if not (bigword.find('A') >= 0 or bigword.find('B') >= 0):
-            #    raw_input("press a key")
-            n = n+1
+            if len(bigword) > 1 and word_dict_is_sub(word_to_letter_dict(bigword), letters_dict):
+                playables.append(bigword)
+        self.playable_words = playables
+        print "There are", len(LetterLogic.wordlist), "words in the dict, and", len(playables), "can be played on this board"
     
     def get_words_with(self, test):
         words = []
@@ -58,56 +42,73 @@ class LetterLogic():
     
     def get_longest_words(self, containing="", nth=1):
         words = []
-        playables = self.playable_words
+        # make copy of playable words
+        playables = self.playable_words[:]
+        # find and remove 1st longest, 2nd longest, etc.. until reached nth, then return
         for i in range(nth):
             words = get_longest_strings(playables, containing)
-            for w in words:
-                playables.remove(w)
+            if i < nth-1:
+                for w in words:
+                    playables.remove(w)
         return words
     
     def get_best_play(self, player):
-        max_score = -51
+        max_score = -LetterBoard.win_score # start at lowest possible
         max_bd = self.board
         max_wd = ""
         N = len(self.playable_words)
         for n in range(N):
             w = self.playable_words[n]
-            sys.stdout.write("Searching words: %d%%\t%sbest (%d): %-18s\r" % (int(100*n/N), "%-20s" % w, max_score, max_wd) )
-            sys.stdout.flush()
-            if(len(w) > 1):
-                bd = self.max_word_score(w, self.board.letterstring, self.board.dupl(), player)
-                score = bd.score(True)*player
-                if score > max_score or (score == max_score and max_wd.find(w) == 0):
-                    max_score = score
-                    max_bd = bd
-                    max_wd = w
-                    if score == 51:
-                        break
+            #sys.stdout.write("Searching words: %d%%\t%sbest (%d): %-18s\r" % (int(100*n/N), "%-20s" % w, max_score, max_wd) )
+            #sys.stdout.flush()
+            bd = self.max_word_score_rec(w, self.board.letterstring, self.board.dupl(), player)
+            score = bd.score(True)*player
+            if score > max_score or (score == max_score and max_wd.find(w) == 0):
+                print "new best:", w 
+                max_score = score
+                max_bd = bd
+                max_wd = w
+                if score == LetterBoard.win_score:
+                    break
         return max_wd, max_bd
         
-    def max_word_score(self, word, choose_from, board, player):
-        # print "max_word_score(%s, %s, %s)" % (word, choose_from, ("None" if board == None else "board"))
+    def max_word_score_rec(self, word, choose_from, board, player):
         if word == "":
             return board
         else:
             best_board = board
-            best_score = -51 # min possible is -50
+            best_score = -LetterBoard.win_score
             for i in range(len(choose_from)):
                 if word[0] == choose_from[i]:
                     rec_word = word[1:]
                     rec_choose = choose_from[:i]+"#"+choose_from[i+1:]
                     rec_board = board.dupl()
                     rec_board.claim_letter(itor(i), itoc(i), player, check_surr=False)
-                    bd = self.max_word_score(rec_word, rec_choose, rec_board, player)
+                    bd = self.max_word_score_rec(rec_word, rec_choose, rec_board, player)
                     if bd:
                         # break early if winning play
                         score = bd.score(True)*player
-                        if score == 51:
+                        if score == LetterBoard.win_score:
                             return bd
                         elif score > best_score:
                             best_score = score
                             best_board = bd
             return best_board
+    
+    def max_word_score(self, word, choose_from, board, player):
+        used_letter = [False]*len(choose_from)
+        for c in word:
+            for i in range(len(choose_from)):
+                if not used_letter[i] and c == choose_from[i]:
+                    # claim letter, mark it as used
+                    used_letter[i] = True
+                    prev_val = board.claim_letter(itor(i), itoc(i), player, check_surr=False)
+                    # get score
+                    # TODO - this loop structure won't work and i'm remembering why i did recursion in the first place
+                    # unclaim letter, mark it as unused
+                    board.claim_letter(itor(i), itoc(i), prev_val, forced=True)
+                    use_letter[i] = False
+            
     
     def play_word(self, word, new_board):
         N = len(self.playable_words)
@@ -152,3 +153,23 @@ def get_longest_strings(strings, containing):
                     words = [w]
                     maxlen = len(w)
         return words
+
+def word_to_letter_dict(word):
+    """
+    Convert a word to a dictionary that maps characters in that word 
+    to a count of those characters
+    """
+    d = {}
+    for c in word:
+        d[c] = d.get(c, 0) + 1
+    return d
+
+def word_dict_is_sub(word_as_letter_dict, available_characters):
+    """
+    Return true iff the word specified by word_as_letter_dict (see word_to_letter_dict)
+    is a subset of the characters in available_characters
+    """
+    for (char, count) in word_as_letter_dict.iteritems():
+        if count > available_characters.get(char,0):
+            return False
+    return True

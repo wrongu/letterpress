@@ -5,7 +5,6 @@ from os import system
 import string
 
 def analytics(ll, contains="", nth=1):
-    ll.get_playable_words()
     contains = contains.upper()
     print "longest words%s:" % (" containing '%s'"%contains if contains else "")
     longests = ll.get_longest_words(contains, nth)
@@ -19,7 +18,8 @@ def analytics(ll, contains="", nth=1):
 # game = LetterLogic(LetterBoard("BLVYDNRBRSPNGEMEHZSDHWBAJ"))
 # brittany
 #game = LetterLogic(LetterBoard("RNCNPLHNFVCCYPEAGMDFHRIPQ"))
-game = LetterLogic(LetterBoard("BRITTANYCAROLINEWALD#####"))
+#game = LetterLogic(LetterBoard("BRITTANYCAROLINEWALD#####"))
+game = LetterLogic(LetterBoard("YSWFBTHAEQSHTTRVORIESPSSR"))
 
 def run_turn(game):
     game.board.print_board()
@@ -38,9 +38,9 @@ def run_game(game):
         game.play_word(best_wd, best_bd)
         player = -player
         
-if __name__ != "__main__":
-    analytics(game)
-else:
+#if __name__ != "__main__":
+#    analytics(game)
+if __name__ == '__main__':
     conts = ""
     nth = 1
     for s in argv[1:]:
@@ -52,7 +52,7 @@ else:
     analytics(game, conts, nth)
     
     #best_wd = "BLITZKRIEG"
-    #best_bd = game.max_word_score(best_wd, game.board.letterstring, game.board, -1)
+    #best_bd = game.max_word_score_rec(best_wd, game.board.letterstring, game.board, -1)
     #game.play_word(best_wd, best_bd)
     #run_game(game)
     if conts == "" and nth == 1:

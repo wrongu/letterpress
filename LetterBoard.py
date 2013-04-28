@@ -4,7 +4,8 @@ from copy import deepcopy
 
 class LetterBoard():
     
-    safe_weight = 1.1
+    safe_weight = 2
+    win_score = 51
     
     def __init__(self, letters_as_str):
         # instance variables
@@ -63,7 +64,7 @@ class LetterBoard():
         if endgame == 0:
             return sum([sum(row) for row in self.territory])
         else:
-            return 51 * endgame
+            return win_score * endgame
         
     def update_surrounding(self, row, col):
         surrounded = True
@@ -98,6 +99,7 @@ class LetterBoard():
                 self.claim_letter(row, col, 1, True)
 
     def claim_letter(self, row, col, set_to, forced=False, check_surr=True):
+        prev_val = self.territory[row][col]
         if forced:
             self.territory[row][col] = set_to
         else:
@@ -113,6 +115,7 @@ class LetterBoard():
                         self.update_surrounding(row, col-1)
                     if col < 4:
                         self.update_surrounding(row, col+1)
+        return prev_val
         
     def get_territory(self, row, col):
         """returns one from (-2, -1, 0, 1, 2)
