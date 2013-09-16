@@ -2,10 +2,10 @@ import string, sys, math
 from termcolor import cprint
 from copy import deepcopy
 
-class LetterBoard():
+class Board():
     
     safe_weight = 2
-    win_score = 51
+    win_score = 2*safe_weight + 1
     
     def __init__(self, letters_as_str):
         # instance variables
@@ -27,15 +27,14 @@ class LetterBoard():
                 j = j+1
                 if j > 4:
                     i=i+1
-                    j = 0
-        # self.make_letterdict()
+                    j = 0 
     
     def dupl(self):
-        return deepcopy(self)
-    
-    def make_letterdict(self):
-        for c in self.letterstring:
-            self.letterdict[c] = self.letterstring.count(c)
+        newb = Board(self.letterstring)
+        for r in range(5):
+            for c in range(5):
+                newb.letters[r][c] = self.letters[r][c]
+                newb.territory[r][c] = self.territory[r][c] 
     
     def get_letters(self):
         return self.letterstring
@@ -103,7 +102,7 @@ class LetterBoard():
         if forced:
             self.territory[row][col] = set_to
         else:
-            if(abs(self.get_territory(row,col)) != LetterBoard.safe_weight):
+            if(abs(self.get_territory(row,col)) != Board.safe_weight):
                 self.territory[row][col] = set_to
                 if check_surr:
                     self.update_surrounding(row, col)
@@ -131,7 +130,7 @@ class LetterBoard():
             for j in range(5):
                 high = ''
                 bld = False
-                if abs(self.get_territory(i,j)) == LetterBoard.safe_weight:
+                if abs(self.get_territory(i,j)) == Board.safe_weight:
                     bld = True
                 if self.get_territory(i,j) < 0:
                     high = 'on_magenta'

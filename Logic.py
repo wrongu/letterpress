@@ -1,18 +1,16 @@
-from itertools import combinations
-from LetterBoard import LetterBoard, itoc, itor
 import sys
     
-class LetterLogic():
+class Logic():
     wordlist = []
     playable_words = []
     board = None
     
     def __init__(self, letter_board):
-        if not LetterLogic.wordlist:
+        if not Logic.wordlist:
             print "loading wordlist..."
         with open('letterpress-wordlist/wordlist', 'r') as f:
-            LetterLogic.wordlist = [s.strip().upper() for s in f.readlines()]
-            if LetterLogic.wordlist:
+            Logic.wordlist = [s.strip().upper() for s in f.readlines()]
+            if Logic.wordlist:
                 print "done"
             else:
                 print "problems"
@@ -27,11 +25,11 @@ class LetterLogic():
         playables = []
         letters_dict = word_to_letter_dict(self.board.letterstring)
         # loop through all words and look for them in letters
-        for bigword in LetterLogic.wordlist:
+        for bigword in Logic.wordlist:
             if len(bigword) > 1 and word_dict_is_sub(word_to_letter_dict(bigword), letters_dict):
                 playables.append(bigword)
         self.playable_words = playables
-        print "There are", len(LetterLogic.wordlist), "words in the dict, and", len(playables), "can be played on this board"
+        print "There are", len(Logic.wordlist), "words in the dict, and", len(playables), "can be played on this board"
     
     def get_words_with(self, test):
         words = []
@@ -53,7 +51,7 @@ class LetterLogic():
         return words
     
     def get_best_play(self, player):
-        max_score = -LetterBoard.win_score # start at lowest possible
+        max_score = -Board.win_score # start at lowest possible
         max_bd = self.board
         max_wd = ""
         N = len(self.playable_words)
@@ -61,34 +59,39 @@ class LetterLogic():
             w = self.playable_words[n]
             #sys.stdout.write("Searching words: %d%%\t%sbest (%d): %-18s\r" % (int(100*n/N), "%-20s" % w, max_score, max_wd) )
             #sys.stdout.flush()
-            bd = self.max_word_score_rec(w, self.board.letterstring, self.board.dupl(), player)
+            bd = self.max_word_score_rec(w, 0, self.board.letterstring, self.board.dupl(), player)
             score = bd.score(True)*player
             if score > max_score or (score == max_score and max_wd.find(w) == 0):
                 print "new best:", w 
                 max_score = score
                 max_bd = bd
                 max_wd = w
-                if score == LetterBoard.win_score:
+                if score == Board.win_score:
                     break
         return max_wd, max_bd
         
-    def max_word_score_rec(self, word, choose_from, board, player):
+    def max_word_score_rec(self, word, word_i, choose_from, board, player):
+        '''Recursively search for all board positions to play this word.
+            This is a permutation algorithm for each possible location
+            of each letter, it sets that location and recurses to the next
+            letter.
+        '''
         if word == "":
             return board
         else:
             best_board = board
-            best_score = -LetterBoard.win_score
+            best_score = -Board.win_score
             for i in range(len(choose_from)):
-                if word[0] == choose_from[i]:
-                    rec_word = word[1:]
-                    rec_choose = choose_from[:i]+"#"+choose_from[i+1:]
+                if word[word_i] == choose_from[i]:
+                    used_char = choose_from[i]
+                    choose_from[i] = '#'
                     rec_board = board.dupl()
                     rec_board.claim_letter(itor(i), itoc(i), player, check_surr=False)
                     bd = self.max_word_score_rec(rec_word, rec_choose, rec_board, player)
                     if bd:
                         # break early if winning play
                         score = bd.score(True)*player
-                        if score == LetterBoard.win_score:
+                        if score == Board.win_score:
                             return bd
                         elif score > best_score:
                             best_score = score
